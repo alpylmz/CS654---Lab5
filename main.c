@@ -159,7 +159,7 @@ int main(){
     lcd_printf("y max: ? ");
     
     
-    int duty_us = 150000;
+    int duty_us = 1500;
     motor_set_duty(0, duty_us);
     
     
@@ -346,8 +346,8 @@ int main(){
             CLEARBIT(AD1CON1bits.DONE);
             
             int interval = max_x - min_x;
-            X = ADC1BUF0 - min_x;
-            X = 90000 + X / interval * (120000);
+            X = ((unsigned short)ADC1BUF0) - min_x;
+            X = 900 + X / ((double)interval) * (1200.0);
             
             lcd_locate(10,6);
             lcd_printf("%.2f", X);    
