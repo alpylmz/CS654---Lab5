@@ -20,6 +20,8 @@
 #include "led.h"
 #include "joystick.h"
 #include "types.h"
+#include "motor.h"
+#include "timer.h"
 
 
 
@@ -36,12 +38,27 @@ _FWDT(FWDTEN_OFF);
 // Disable Code Protection
 _FGS(GCP_OFF);  
 
+int curr_duty_us_x = 0;
+int curr_duty_us_y = 0;
+
+
+void __attribute__((__interrupt__)) _T2Interrupt(void){
+    motor_set_duty(0, curr_duty_us_x);
+    lcd_locate(5, 5);
+    lcd_printf("tt");
+    __delay_ms(1);
+    
+    IFS0bits.T2IF = 0;
+}
+
 
 int main(){
 	// LCD Initialization Sequence 
 	__C30_UART=1;	
 	lcd_initialize();
 	lcd_clear();
+    
+    motor_init(0);
     
     unsigned char counter = 0;
     
@@ -140,10 +157,16 @@ int main(){
     lcd_printf("y max: ? ");
     
     
+    int duty_us = 15000;
+    //motor_set_duty(0, duty_us);
+    curr_duty_us_x = duty_us;
+    
     
 	while(1){
         
         if(prev_counter != counter){
+            duty_us += 1;
+            curr_duty_us_x = duty_us;
             //lcd_locate(0,3);
             //lcd_printf("Counter: ");
             //lcd_printf("%d, 0x%x", counter,counter);
