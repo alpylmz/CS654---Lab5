@@ -22,7 +22,7 @@
 
 
 
-//Initial configuration by EE 
+//Initial configuration by EE #include "types.h"
 // Primary (XT, HS, EC) Oscillator with PLL
 _FOSCSEL(FNOSC_PRIPLL);
 
@@ -85,7 +85,7 @@ int main(){
     SETBIT(TRISBbits.TRISB4);
     
     //CLEARBIT(AD1PCFGHbits.   ); //set AD1 AN4 input pin as analog
-    
+    #include "types.h"
     //Configure AD1CON1
     CLEARBIT(AD1CON1bits.AD12B); //set 10b Operation Mode
     AD1CON1bits.FORM = 0; //set integer output
@@ -123,6 +123,7 @@ int main(){
     
     
 	while(1){
+        
         if(prev_counter != counter){
             //lcd_locate(0,3);
             //lcd_printf("Counter: ");
@@ -139,12 +140,47 @@ int main(){
                 lcd_locate(10,0);
                 lcd_printf(" %d", min_x);
                 __delay_ms(1);
+            }else if(curr_state == 1){
+                SETBIT(AD1CON1bits.SAMP);
+                while(!AD1CON1bits.DONE);
+                CLEARBIT(AD1CON1bits.DONE);
+                //ADC1BUFO includes the sample
+                
+                max_x = ADC1BUF0 % 1024;
+                
+                lcd_locate(10,1);
+                lcd_printf(" %d", max_x);
+                __delay_ms(1);
+            }else if(curr_state == 2){
+                SETBIT(AD1CON1bits.SAMP);
+                while(!AD1CON1bits.DONE);
+                CLEARBIT(AD1CON1bits.DONE);
+                //ADC1BUFO includes the sample
+                
+                min_y = ADC1BUF0 % 1024;
+                
+                lcd_locate(10,2);
+                lcd_printf(" %d", min_y);
+                __delay_ms(1);
+            }else if(curr_state == 3){
+                SETBIT(AD1CON1bits.SAMP);
+                while(!AD1CON1bits.DONE);
+                CLEARBIT(AD1CON1bits.DONE);
+                //ADC1BUFO includes the sample
+                
+                max_y = ADC1BUF0 % 1024;
+                
+                lcd_locate(10,3);
+                lcd_printf(" %d", max_y);
+                __delay_ms(1);
             }
 
             
             curr_state++;
             prev_counter = counter;
         }
+        
+        
 		if (JOYSTICK1 == 0)
         {
             pressed_count++;
@@ -200,6 +236,64 @@ int main(){
             }
             __delay_ms(1);
         }
+        
+        if(curr_state == 1){
+            // sampling min x
+            SETBIT(AD1CON1bits.SAMP);
+            while(!AD1CON1bits.DONE);
+            CLEARBIT(AD1CON1bits.DONE);
+            //ADC1BUFO includes the sample
+
+            unsigned short adc1res = ADC1BUF0;
+
+            lcd_locate(10,1);
+            if(adc1res % 1024 < 1000){
+                lcd_printf(" %d", adc1res % 1024);    
+            }
+            else{
+                lcd_printf("%d", adc1res % 1024);    
+            }
+            __delay_ms(1);
+        }
+        
+        if(curr_state == 2){
+            // sampling min y
+            SETBIT(AD1CON1bits.SAMP);
+            while(!AD1CON1bits.DONE);
+            CLEARBIT(AD1CON1bits.DONE);
+            //ADC1BUFO includes the sample
+
+            unsigned short adc1res = ADC1BUF0;
+
+            lcd_locate(10,2);
+            if(adc1res % 1024 < 1000){
+                lcd_printf(" %d", adc1res % 1024);    
+            }
+            else{
+                lcd_printf("%d", adc1res % 1024);    
+            }
+            __delay_ms(1);
+        }
+        
+        if(curr_state == 3){
+            // sampling max y
+            SETBIT(AD1CON1bits.SAMP);
+            while(!AD1CON1bits.DONE);
+            CLEARBIT(AD1CON1bits.DONE);
+            //ADC1BUFO includes the sample
+
+            unsigned short adc1res = ADC1BUF0;
+
+            lcd_locate(10,3);
+            if(adc1res % 1024 < 1000){
+                lcd_printf(" %d", adc1res % 1024);    
+            }
+            else{
+                lcd_printf("%d", adc1res % 1024);    
+            }
+            __delay_ms(1);
+        }
+        
         
         
         
