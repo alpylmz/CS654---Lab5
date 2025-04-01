@@ -44,7 +44,8 @@ int curr_duty_us_y = 0;
 
 void __attribute__((__interrupt__)) _T2Interrupt(void){
     motor_set_duty(0, curr_duty_us_x);
-    lcd_locate(5, 5);
+    
+    lcd_locate(6, 6);
     lcd_printf("tt");
     __delay_ms(1);
     
@@ -142,7 +143,8 @@ int main(){
     int curr_state = 0;
     
     int min_x, max_x, min_y, max_y;
-    min_x = max_x = min_y = max_y = 0;
+    double X, Y;
+    min_x = max_x = min_y = max_y = X = 0;
     
     lcd_locate(0, 0);
     lcd_printf("x min: ? ");
@@ -157,16 +159,16 @@ int main(){
     lcd_printf("y max: ? ");
     
     
-    int duty_us = 15000;
-    //motor_set_duty(0, duty_us);
-    curr_duty_us_x = duty_us;
+    int duty_us = 150000;
+    motor_set_duty(0, duty_us);
     
     
 	while(1){
-        
+
         if(prev_counter != counter){
-            duty_us += 1;
-            curr_duty_us_x = duty_us;
+            //duty_us = ADC1BUF0 % 1024;
+            //curr_duty_us_x = duty_us;
+            //motor_set_duty(0, duty_us);
             //lcd_locate(0,3);
             //lcd_printf("Counter: ");
             //lcd_printf("%d, 0x%x", counter,counter);
@@ -217,7 +219,6 @@ int main(){
                 __delay_ms(1);
             }
 
-            
             curr_state++;
             prev_counter = counter;
         }
@@ -231,6 +232,8 @@ int main(){
                 counter++;
                 is_pressed = 1;
                 pressed_count = 0;
+                curr_duty_us_x += 1000;
+
             }
           
             //__delay_ms(30);
@@ -324,8 +327,8 @@ int main(){
             CLEARBIT(AD2CON1bits.DONE);
             //ADC1BUFO includes the sample
 
-            unsigned short adc2res = ADC2BUF0;
-
+            unsigned short adc2res = ADC2BUF0; 
+                
             lcd_locate(10,3);
             if(adc2res % 1024 < 1000){
                 lcd_printf(" %d", adc2res % 1024);    
@@ -336,6 +339,22 @@ int main(){
             __delay_ms(1);
         }
         
+        
+        if(curr_state == 4){
+            SETBIT(AD1CON1bits.SAMP);
+            while(!AD1CON1bits.DONE);
+            CLEARBIT(AD1CON1bits.DONE);
+            
+            int interval = max_x - min_x;
+            X = ADC1BUF0 - min_x;
+            X = 90000 + X / interval * (120000);
+            
+            lcd_locate(10,6);
+            lcd_printf("%.2f", X);    
+            motor_set_duty(0, X);
+            
+            __delay_ms(1);
+        }
         
         
         
