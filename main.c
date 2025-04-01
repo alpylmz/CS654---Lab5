@@ -19,6 +19,7 @@
 #include "lcd.h"
 #include "led.h"
 #include "joystick.h"
+#include "types.h"
 
 
 
@@ -79,28 +80,46 @@ int main(){
     unsigned char released_count = 0;
     
     // disable ADC
-    CLEARBIT(AD1CON1bits.ADON);
+    CLEARBIT(AD1CON1bits.ADON);    
+    CLEARBIT(AD2CON1bits.ADON);
+
     
-    // initialize PIN for joystick X
+    // initialize PIN for joystick X&Y
     SETBIT(TRISBbits.TRISB4);
+    SETBIT(TRISBbits.TRISB5); // joystick Y
+
     
     //CLEARBIT(AD1PCFGHbits.   ); //set AD1 AN4 input pin as analog
-    #include "types.h"
     //Configure AD1CON1
-    CLEARBIT(AD1CON1bits.AD12B); //set 10b Operation Mode
-    AD1CON1bits.FORM = 0; //set integer output
-    AD1CON1bits.SSRC = 0x7; //set automatic conversion
+    CLEARBIT(AD1CON1bits.AD12B); //set 10b Operation Mode    
+    CLEARBIT(AD2CON1bits.AD12B); //set 10b Operation Mode for ADC2
+
+    AD1CON1bits.FORM = 0; //set integer output    
+    AD2CON1bits.FORM = 0; //set integer output
+
+    AD1CON1bits.SSRC = 0x7; //set automatic conversion    
+    AD2CON1bits.SSRC = 0x7; //set automatic conversion
+
     //Configure AD1CON2
-    AD1CON2 = 0; //not using scanning sampling
+    AD1CON2 = 0; //not using scanning sampling    
+    AD2CON2 = 0; //not using scanning sampling
+
     //Configure AD1CON3
     CLEARBIT(AD1CON3bits.ADRC); //internal clock source
     AD1CON3bits.SAMC = 0x1F; //sample-to-conversion clock = 31Tad
     AD1CON3bits.ADCS = 0x2; //Tad = 3Tcy (Time cycles)
+    CLEARBIT(AD2CON3bits.ADRC); //internal clock source
+    AD2CON3bits.SAMC = 0x1F; //sample-to-conversion clock = 31Tad
+    AD2CON3bits.ADCS = 0x2; //Tad = 3Tcy (Time cycles)
     //Leave AD1CON4 at its default value
     //enable ADC
-    SETBIT(AD1CON1bits.ADON);
+    SETBIT(AD1CON1bits.ADON);    
+    SETBIT(AD2CON1bits.ADON);
+
     
-    AD1CHS0bits.CH0SA = 0x04;
+    AD1CHS0bits.CH0SA = 0x04;    
+    AD2CHS0bits.CH0SA = 0x05;
+
     
     char curr_text[500] = "";
     int curr_state = 0;
@@ -152,23 +171,23 @@ int main(){
                 lcd_printf(" %d", max_x);
                 __delay_ms(1);
             }else if(curr_state == 2){
-                SETBIT(AD1CON1bits.SAMP);
-                while(!AD1CON1bits.DONE);
-                CLEARBIT(AD1CON1bits.DONE);
+                SETBIT(AD2CON1bits.SAMP);
+                while(!AD2CON1bits.DONE);
+                CLEARBIT(AD2CON1bits.DONE);
                 //ADC1BUFO includes the sample
                 
-                min_y = ADC1BUF0 % 1024;
+                min_y = ADC2BUF0 % 1024;
                 
                 lcd_locate(10,2);
                 lcd_printf(" %d", min_y);
                 __delay_ms(1);
             }else if(curr_state == 3){
-                SETBIT(AD1CON1bits.SAMP);
-                while(!AD1CON1bits.DONE);
-                CLEARBIT(AD1CON1bits.DONE);
+                SETBIT(AD2CON1bits.SAMP);
+                while(!AD2CON1bits.DONE);
+                CLEARBIT(AD2CON1bits.DONE);
                 //ADC1BUFO includes the sample
                 
-                max_y = ADC1BUF0 % 1024;
+                max_y = ADC2BUF0 % 1024;
                 
                 lcd_locate(10,3);
                 lcd_printf(" %d", max_y);
@@ -258,38 +277,38 @@ int main(){
         
         if(curr_state == 2){
             // sampling min y
-            SETBIT(AD1CON1bits.SAMP);
-            while(!AD1CON1bits.DONE);
-            CLEARBIT(AD1CON1bits.DONE);
+            SETBIT(AD2CON1bits.SAMP);
+            while(!AD2CON1bits.DONE);
+            CLEARBIT(AD2CON1bits.DONE);
             //ADC1BUFO includes the sample
 
-            unsigned short adc1res = ADC1BUF0;
+            unsigned short adc2res = ADC2BUF0;
 
             lcd_locate(10,2);
-            if(adc1res % 1024 < 1000){
-                lcd_printf(" %d", adc1res % 1024);    
+            if(adc2res % 1024 < 1000){
+                lcd_printf(" %d", adc2res % 1024);    
             }
             else{
-                lcd_printf("%d", adc1res % 1024);    
+                lcd_printf("%d", adc2res % 1024);    
             }
             __delay_ms(1);
         }
         
         if(curr_state == 3){
             // sampling max y
-            SETBIT(AD1CON1bits.SAMP);
-            while(!AD1CON1bits.DONE);
-            CLEARBIT(AD1CON1bits.DONE);
+            SETBIT(AD2CON1bits.SAMP);
+            while(!AD2CON1bits.DONE);
+            CLEARBIT(AD2CON1bits.DONE);
             //ADC1BUFO includes the sample
 
-            unsigned short adc1res = ADC1BUF0;
+            unsigned short adc2res = ADC2BUF0;
 
             lcd_locate(10,3);
-            if(adc1res % 1024 < 1000){
-                lcd_printf(" %d", adc1res % 1024);    
+            if(adc2res % 1024 < 1000){
+                lcd_printf(" %d", adc2res % 1024);    
             }
             else{
-                lcd_printf("%d", adc1res % 1024);    
+                lcd_printf("%d", adc2res % 1024);    
             }
             __delay_ms(1);
         }
