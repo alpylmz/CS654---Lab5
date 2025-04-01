@@ -11,7 +11,6 @@
 void motor_init(uint8_t chan){
     /* Disable Timer 2 */
     CLEARBIT(T2CONbits.TON);
-    
     /* Setup Timer 2 for no interrupts, 20ms period */
     CLEARBIT(T2CONbits.TCS); 
     CLEARBIT(T2CONbits.TGATE);
@@ -33,19 +32,19 @@ void motor_init(uint8_t chan){
 
 /*
 Set the duty cycle of the specified motor channel using 
-the provided duty in mircoseconds. Use Timer2 for the duty cycle.
+the provided duty in microseconds. Use Timer2 for the duty cycle.
  */
 void motor_set_duty(uint8_t chan, uint16_t duty_us){
     // safety check according to lab manual
-    if(duty_us/PR2 > 210000 && duty_us/PR2 < 90000){
+    //if(duty_us <= 210000 && duty_us >= 90000){
         if(chan == 0){ // for X axis        
-            OC8R = duty_us; // First duty cycle of x ms
-            OC8RS = duty_us; // Next duty cycle of x ms
+            OC8R = PR2-duty_us; // First duty cycle of x ms
+            OC8RS = PR2-duty_us; // Next duty cycle of x ms
             OC8CONbits.OCM = 0b110; // Set PWM, no fault mode
         }else if (chan == 1){
             OC7R = duty_us; // First duty cycle of y ms
             OC7RS = duty_us; // Next duty cycle of y ms
             OC7CONbits.OCM = 0b110; // Set PWM, no fault mode
         }
-    }
+    //}
 }
