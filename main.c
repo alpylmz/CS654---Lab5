@@ -42,12 +42,8 @@ int curr_duty_us_x = 0;
 int curr_duty_us_y = 0;
 
 
-void __attribute__((__interrupt__)) _T2Interrupt(void){
-    motor_set_duty(0, curr_duty_us_x);
+void __attribute__((__interrupt__)) _T2Interrupt(void){    
     
-    lcd_locate(6, 6);
-    lcd_printf("tt");
-    __delay_ms(1);
     
     IFS0bits.T2IF = 0;
 }
@@ -346,11 +342,19 @@ int main(){
             CLEARBIT(AD1CON1bits.DONE);
             
             int interval = max_x - min_x;
-            X = ((unsigned short)ADC1BUF0) - min_x;
+            unsigned short ADC1BUF0_mod = ADC1BUF0 % 1024;
+            X = ADC1BUF0_mod - min_x;
+            if(X < 0){
+                X = 0;
+            }
             X = 900 + X / ((double)interval) * (1200.0);
             
-            lcd_locate(10,6);
-            lcd_printf("%.2f", X);    
+            lcd_locate(10,5);
+            lcd_printf("%.2f", X); 
+            lcd_locate(10, 6);
+            lcd_printf("%d", ADC1BUF0_mod);
+            
+
             motor_set_duty(0, X);
             
             __delay_ms(1);
