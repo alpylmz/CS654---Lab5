@@ -40,9 +40,6 @@ _FGS(GCP_OFF);
 
 int curr_duty_us_x = 0;
 int curr_duty_us_y = 0;
-int switch_state_2 = 0;
-int switch_state_4 = 0;
-int switch_state_5 = 0;
 
 
 void __attribute__((__interrupt__)) _T2Interrupt(void){    
@@ -50,23 +47,6 @@ void __attribute__((__interrupt__)) _T2Interrupt(void){
     
     IFS0bits.T2IF = 0;
 }
-
-void set_joystick_x(){
-    CLEARBIT(AD1CON1bits.ADON);  
-    AD1CHS0bits.CH0SA = 0x04;  
-    __delay_ms(1);
-    SETBIT(AD1CON1bits.ADON);  
-}
-
-
-void set_joystick_y(){
-    CLEARBIT(AD1CON1bits.ADON);  
-    AD1CHS0bits.CH0SA = 0x05;
-    __delay_ms(1);
-    SETBIT(AD1CON1bits.ADON);  
-}
-
-
 
 
 int main(){
@@ -115,7 +95,7 @@ int main(){
     
     // disable ADC
     CLEARBIT(AD1CON1bits.ADON);    
-    //CLEARBIT(AD2CON1bits.ADON);
+    CLEARBIT(AD2CON1bits.ADON);
 
     
     // initialize PIN for joystick X&Y
@@ -125,34 +105,34 @@ int main(){
     
     //CLEARBIT(AD1PCFGHbits.   ); //set AD1 AN4 input pin as analog
     //Configure AD1CON1
-    SETBIT(AD1CON1bits.AD12B); //set 12b Operation Mode    
-    //SETBIT(AD2CON1bits.AD12B); //set 10b Operation Mode for ADC2
+    CLEARBIT(AD1CON1bits.AD12B); //set 10b Operation Mode    
+    CLEARBIT(AD2CON1bits.AD12B); //set 10b Operation Mode for ADC2
 
     AD1CON1bits.FORM = 0; //set integer output    
-    //AD2CON1bits.FORM = 0; //set integer output
+    AD2CON1bits.FORM = 0; //set integer output
 
     AD1CON1bits.SSRC = 0x7; //set automatic conversion    
-    //AD2CON1bits.SSRC = 0x7; //set automatic conversion
+    AD2CON1bits.SSRC = 0x7; //set automatic conversion
 
     //Configure AD1CON2
     AD1CON2 = 0; //not using scanning sampling    
-    //AD2CON2 = 0; //not using scanning sampling
+    AD2CON2 = 0; //not using scanning sampling
 
     //Configure AD1CON3
     CLEARBIT(AD1CON3bits.ADRC); //internal clock source
     AD1CON3bits.SAMC = 0x1F; //sample-to-conversion clock = 31Tad
     AD1CON3bits.ADCS = 0x2; //Tad = 3Tcy (Time cycles)
-    //CLEARBIT(AD2CON3bits.ADRC); //internal clock source
-    //AD2CON3bits.SAMC = 0x1F; //sample-to-conversion clock = 31Tad
-    //AD2CON3bits.ADCS = 0x2; //Tad = 3Tcy (Time cycles)
+    CLEARBIT(AD2CON3bits.ADRC); //internal clock source
+    AD2CON3bits.SAMC = 0x1F; //sample-to-conversion clock = 31Tad
+    AD2CON3bits.ADCS = 0x2; //Tad = 3Tcy (Time cycles)
     //Leave AD1CON4 at its default value
     //enable ADC
     SETBIT(AD1CON1bits.ADON);    
-    //SETBIT(AD2CON1bits.ADON);
+    SETBIT(AD2CON1bits.ADON);
 
     
     AD1CHS0bits.CH0SA = 0x04;    
-    //AD2CHS0bits.CH0SA = 0x05;
+    AD2CHS0bits.CH0SA = 0x05;
 
     
     char curr_text[500] = "";
@@ -177,7 +157,6 @@ int main(){
     
     int duty_us = 1500;
     motor_set_duty(0, duty_us);
-    
     
     
 	while(1){
@@ -205,37 +184,29 @@ int main(){
                 lcd_locate(10,1);
                 lcd_printf(" %d", max_x);
                 __delay_ms(1);
-                
-                set_joystick_y();
-                
             }else if(curr_state == 2){
-                SETBIT(AD1CON1bits.SAMP);
-                while(!AD1CON1bits.DONE);
-                CLEARBIT(AD1CON1bits.DONE);
+                SETBIT(AD2CON1bits.SAMP);
+                while(!AD2CON1bits.DONE);
+                CLEARBIT(AD2CON1bits.DONE);
                 //ADC1BUFO includes the sample
                 
-                min_y = ADC1BUF0 % 1024;
+                min_y = ADC2BUF0 % 1024;
                 
                 lcd_locate(10,2);
                 lcd_printf(" %d", min_y);
                 __delay_ms(1);
             }else if(curr_state == 3){
-                SETBIT(AD1CON1bits.SAMP);
-                while(!AD1CON1bits.DONE);
-                CLEARBIT(AD1CON1bits.DONE);
+                SETBIT(AD2CON1bits.SAMP);
+                while(!AD2CON1bits.DONE);
+                CLEARBIT(AD2CON1bits.DONE);
                 //ADC1BUFO includes the sample
                 
-                max_y = ADC1BUF0 % 1024;
+                max_y = ADC2BUF0 % 1024;
                 
                 lcd_locate(10,3);
                 lcd_printf(" %d", max_y);
                 __delay_ms(1);
-                
-                set_joystick_x();
-            } else if(curr_state == 4){
-                set_joystick_y();
             }
-            
 
             curr_state++;
             prev_counter = counter;
@@ -321,12 +292,12 @@ int main(){
         
         if(curr_state == 2){
             // sampling min y
-            SETBIT(AD1CON1bits.SAMP);
-            while(!AD1CON1bits.DONE);
-            CLEARBIT(AD1CON1bits.DONE);
+            SETBIT(AD2CON1bits.SAMP);
+            while(!AD2CON1bits.DONE);
+            CLEARBIT(AD2CON1bits.DONE);
             //ADC1BUFO includes the sample
 
-            unsigned short adc2res = ADC1BUF0;
+            unsigned short adc2res = ADC2BUF0;
 
             lcd_locate(10,2);
             if(adc2res % 1024 < 1000){
@@ -383,16 +354,16 @@ int main(){
             
             
             
-            __delay_ms(1);
+            //__delay_ms(1);
         }
         
         if(curr_state == 5){
-            SETBIT(AD1CON1bits.SAMP);
-            while(!AD1CON1bits.DONE);
-            CLEARBIT(AD1CON1bits.DONE);
+            SETBIT(AD2CON1bits.SAMP);
+            while(!AD2CON1bits.DONE);
+            CLEARBIT(AD2CON1bits.DONE);
             
             int interval = max_y - min_y;
-            int ADC2BUF0_mod = ADC1BUF0 % 1024;
+            int ADC2BUF0_mod = ADC2BUF0 % 1024;
             
             Y = ADC2BUF0_mod - min_y;
             if(Y < 0){
@@ -400,13 +371,13 @@ int main(){
             }
             uint16_t Y_new = 900 + (Y / interval) * 1200;
             
-            lcd_locate(0,6);
+            lcd_locate(0,5);
             lcd_printf("Y: %d", Y_new); 
             
 
             motor_set_duty(0, Y_new);
             
-            __delay_ms(1);
+            //__delay_ms(1);
         }
         
         
