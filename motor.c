@@ -51,16 +51,16 @@ void motor_set_duty(uint8_t chan, uint16_t duty_us){
     double ratio_us = ((double)duty_us)/20000.0;
     double duty_ratio = ratio_us * PR2;
     //duty_ratio = mapValue(duty_ratio, 200, 400, 2000, 3000);
-    lcd_locate(1,6);
-    lcd_printf("%f", duty_ratio);
+    //lcd_locate(1,6);
+    //lcd_printf("%f", duty_ratio);
     double inverted = (PR2 - duty_ratio);
     //double val = (12.8*1000000) / (64/duty_us);
     //double inverted = PR2 - val;
     // safety check according to lab manual
     //if(duty_us <= 210000 && duty_us >= 90000){
         if(chan == 0){ // for X axis       
-            lcd_locate(1,7);
-            lcd_printf("%f", inverted);
+            //lcd_locate(1,7);
+            //lcd_printf("%f", inverted);
             if(abs(prev_x - inverted) < 10){
                 return;
             }
