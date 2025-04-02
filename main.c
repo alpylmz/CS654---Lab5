@@ -89,6 +89,13 @@ void set_joystick_channel(int channel_an) {
     SETBIT(AD1CON1bits.ADON);  
 }
 
+int sample_joystick(){
+    SETBIT(AD1CON1bits.SAMP);
+    while(!AD1CON1bits.DONE);
+    CLEARBIT(AD1CON1bits.DONE);
+    return ADC1BUF0 % 1024;
+}
+
 // Function wrap for displaying changes during calibration.
 // The state determines the row to update:
 // 0 = x min, 1 = x max, 2 = y min, 3 = y max.
