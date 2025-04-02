@@ -349,7 +349,34 @@ int main(){
             lcd_printf("ADC %d", ADC1BUF0_mod);
             
 
-            motor_set_duty(0, X_new);
+            motor_set_duty(1, X_new);
+            
+            
+            
+            //__delay_ms(1);
+        }
+        
+        if(curr_state == 5){
+            SETBIT(AD2CON1bits.SAMP);
+            while(!AD2CON1bits.DONE);
+            CLEARBIT(AD2CON1bits.DONE);
+            
+            int interval = max_y - min_y;
+            int ADC2BUF0_mod = ADC2BUF0 % 1024;
+            
+            Y = ADC2BUF0_mod - min_y;
+            if(Y < 0){
+                Y = 0;
+            }
+            uint16_t Y_new = 900 + (Y / interval) * 1200;
+            
+            lcd_locate(0,5);
+            lcd_printf("Y: %.2f", Y); 
+            lcd_locate(0, 4);
+            lcd_printf("ADC %d", ADC2BUF0_mod);
+            
+
+            motor_set_duty(0, Y_new);
             
             //__delay_ms(1);
         }
