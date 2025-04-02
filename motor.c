@@ -32,6 +32,7 @@ void motor_init(uint8_t chan){
     /* Enable Timer 2 */
     SETBIT(T2CONbits.TON);
     OC8CONbits.OCM = 0b110; // Set PWM, no fault mode
+    OC7CONbits.OCM = 0b110; // Set PWM, no fault mode
 }
 
 
@@ -68,9 +69,12 @@ void motor_set_duty(uint8_t chan, uint16_t duty_us){
             //OC8CONbits.OCM = 0b110; // Set PWM, no fault mode
             prev_x = inverted;
         }else if (chan == 1){
+            if(abs(prev_y - inverted) < 10){
+                return;
+            }
             OC7R = inverted; // First duty cycle of y ms
             OC7RS = inverted; // Next duty cycle of y ms
-            OC7CONbits.OCM = 0b110; // Set PWM, no fault mode
+            //OC7CONbits.OCM = 0b110; // Set PWM, no fault mode
             prev_y = inverted;
         }
     //}
