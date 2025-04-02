@@ -104,31 +104,40 @@ void update_calibration_display(int state, int current_value) {
 // Captures a calibration value for the given state.
 // This function takes one sample and sets the corresponding calibration variable.
 // It also updates the display to “freeze” the value.
-void capture_calibration_value(int state) {
+int capture_calibration_value(int state) {
     int sample = sample_joystick(); // Capture the current sample
+    int success = 1;
     switch (state) {
         case 0:
             min_x = sample;
             update_calibration_display(state, min_x);
             break;
         case 1: 
-            max_x = sample;
-            update_calibration_display(state, max_x);
-            // Switch to Y channel for the next calibration state
-            set_joystick_channel(ADC_CHANNEL_Y);
+	    if(sample < min_x){
+		success = 0;
+	    }else{
+                max_x = sample;
+                update_calibration_display(state, max_x);
+                // Switch to Y channel for the next calibration state
+                set_joystick_channel(ADC_CHANNEL_Y);
+	    }
             break;
         case 2:
             min_y = sample;
             update_calibration_display(state, min_y);
             break;
         case 3: 
-            max_y = sample;
-            update_calibration_display(state, max_y);
-            // Switch back to X channel for motor control
-            set_joystick_channel(ADC_CHANNEL_X);
+	    if(sample < min_y){
+	        success = 0;
+	    }else{
+            	max_y = sample;
+            	update_calibration_display(state, max_y);
+            	// Switch back to X channel for motor control
+            	set_joystick_channel(ADC_CHANNEL_X);
+	    }
             break;
     }
-    __delay_ms(10);
+    return success;
 }
 
 // Updates and controls the motor for the specified axis (0: x, 1: y)
@@ -202,8 +211,9 @@ int main(){
                 pressed_count++;
                 if(pressed_count > DEBOUNCE_COUNT && is_pressed == 0){
                     // Capture and freeze the current value for the current calibration state
-                    capture_calibration_value(calibration_state);
-                    calibration_state++;
+                    if(capture_calibration_value(calibration_state)){
+                    	calibration_state++;
+		    }
                     pressed_count = 0;
                     released_count = 0;
                     is_pressed = 1;
