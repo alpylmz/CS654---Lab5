@@ -28,18 +28,13 @@
 //Initial configuration by EE #include "types.h"
 // Primary (XT, HS, EC) Oscillator with PLL
 _FOSCSEL(FNOSC_PRIPLL);
-
 // OSC2 Pin Function: OSC2 is Clock Output - Primary Oscillator Mode: XT Crystal
 _FOSC(OSCIOFNC_OFF & POSCMD_XT); 
-
 // Watchdog Timer Enabled/disabled by user software
 _FWDT(FWDTEN_OFF);
-
 // Disable Code Protection
 _FGS(GCP_OFF);  
 
-int curr_duty_us_x = 0;
-int curr_duty_us_y = 0;
 
 void init_adc1(){
     // disable ADC
@@ -93,8 +88,6 @@ int main(){
     SETBIT(TRISBbits.TRISB4);
     SETBIT(TRISBbits.TRISB5); // joystick Y
 
-   
-    
     char curr_text[500] = "";
     int curr_state = 0;
     
@@ -114,9 +107,11 @@ int main(){
     lcd_locate(0, 3);
     lcd_printf("y max: ? ");
     
-    
-    int duty_us = 1500;
+    // Move ball to one side of the touchscreen
+    int duty_us = 900;
     motor_set_duty(0, duty_us);
+    motor_set_duty(1, duty_us);
+
     
     
 	while(1){
@@ -155,7 +150,7 @@ int main(){
             prev_counter = counter;
         }
         
-        
+        // joystick button code
 		if (JOYSTICK1 == 0)
         {
             pressed_count++;
@@ -164,10 +159,7 @@ int main(){
                 counter++;
                 is_pressed = 1;
                 pressed_count = 0;
-                
-
             }
-          
         }
         else{
             released_count++;
