@@ -162,13 +162,6 @@ int main(){
 	while(1){
 
         if(prev_counter != counter){
-            //duty_us = ADC1BUF0 % 1024;
-            //curr_duty_us_x = duty_us;
-            //motor_set_duty(0, duty_us);
-            //lcd_locate(0,3);
-            //lcd_printf("Counter: ");
-            //lcd_printf("%d, 0x%x", counter,counter);
-            
             if(curr_state == 0){
                 SETBIT(AD1CON1bits.SAMP);
                 while(!AD1CON1bits.DONE);
@@ -228,7 +221,7 @@ int main(){
                 counter++;
                 is_pressed = 1;
                 pressed_count = 0;
-                curr_duty_us_x += 1000;
+                //curr_duty_us_x += 1000;
 
             }
           
@@ -342,45 +335,26 @@ int main(){
             CLEARBIT(AD1CON1bits.DONE);
             
             int interval = max_x - min_x;
-            unsigned short ADC1BUF0_mod = ADC1BUF0 % 1024;
+            int ADC1BUF0_mod = ADC1BUF0 % 1024;
+            
             X = ADC1BUF0_mod - min_x;
             if(X < 0){
                 X = 0;
             }
-            X = 900 + X / ((double)interval) * (1200.0);
+            uint16_t X_new = 900 + (X / interval) * 1200;
             
-            lcd_locate(10,5);
-            lcd_printf("%.2f", X); 
-            lcd_locate(10, 6);
-            lcd_printf("%d", ADC1BUF0_mod);
+            lcd_locate(0,5);
+            lcd_printf("X: %.2f", X); 
+            lcd_locate(0, 4);
+            lcd_printf("ADC %d", ADC1BUF0_mod);
             
 
-            motor_set_duty(0, X);
+            motor_set_duty(0, X_new);
             
-            __delay_ms(1);
+            //__delay_ms(1);
         }
         
         
-        
-        
-        
-        /*
-        SETBIT(AD1CON1bits.SAMP);
-        while(!AD1CON1bits.DONE);
-        CLEARBIT(AD1CON1bits.DONE);
-        //ADC1BUFO includes the sample
-        
-        unsigned short adc1res = ADC1BUF0;
-
-        lcd_locate(0,0);
-        if(adc1res % 1024 < 1000){
-            lcd_printf(" %d", adc1res % 1024);    
-        }
-        else{
-            lcd_printf("%d", adc1res % 1024);    
-        }
-        __delay_us(1000);
-        */
 
         
 	}
