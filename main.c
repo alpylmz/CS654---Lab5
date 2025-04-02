@@ -143,6 +143,7 @@ int capture_calibration_value(int state) {
 // Updates and controls the motor for the specified axis (0: x, 1: y)
 void update_and_control_motor(int motor) {
     if(motor == 0){
+	set_joystick_channel(ADC_CHANNEL_X); // just in case
         int raw_x = sample_joystick();  
         uint16_t duty_x_us = (uint16_t)mapValue(raw_x, min_x, max_x, 
                                             MOTOR_MIN_DUTY_US, MOTOR_MAX_DUTY_US);
@@ -152,6 +153,7 @@ void update_and_control_motor(int motor) {
         lcd_printf("X Duty: %4u ", duty_x_us); // Display calculated duty
         motor_set_duty(MOTOR_CHANNEL_X, duty_x_us);
     } else if(motor == 1){
+	set_joystick_channel(ADC_CHANNEL_Y);
         int raw_y = sample_joystick(); // Assumes Y channel is selected
         uint16_t duty_y_us = (uint16_t)mapValue(raw_y, min_y, max_y, 
                                             MOTOR_MIN_DUTY_US, MOTOR_MAX_DUTY_US);                                 
